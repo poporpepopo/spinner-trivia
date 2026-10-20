@@ -43,19 +43,20 @@ ln -s ~/Developer/spinner-trivia ~/.claude/spinner-trivia
     ]
   },
   "spinnerTipsOverride": {
-    "tipsFile": "~/.claude/spinner-tips.json",
-    "label": "豆知識"
+    "tipsFile": "~/.claude/spinner-tips.json"
   }
 }
 ```
 
 次のセッションから表示が変わります。
 
+スピナーの文言と Tips は Claude Code がそれぞれ別に選ぶので、並んでいても内容は関係ありません。Tips の頭には「ところで」「余談」「ちなみに」などのラベルを付けて、別の話だとわかるようにしています。ラベルは設定に1つしか持てないため、セッションごとに選び直します。
+
 ## 何を書き換えるか
 
 | ファイル | 内容 |
 |---|---|
-| `~/.claude/settings.json` | `spinnerVerbs` を毎回、選んだ100件で置き換える（ほかの設定には触らない） |
+| `~/.claude/settings.json` | `spinnerVerbs` を毎回、選んだ100件で置き換え、`spinnerTipsOverride` があればその `label` を選び直す（ほかの設定には触らない） |
 | `~/.claude/spinner-tips.json` | 選んだ Tips 200件を書き出す |
 | `state.json` | 選んだものの記録（git の管理外） |
 

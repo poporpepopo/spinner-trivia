@@ -2,7 +2,7 @@
 """SessionStart hook: 豆知識の一覧から選び、スピナーの表示を差し替える。
 
 - ~/.claude/spinner-trivia/verbs/*.txt → settings.json の spinnerVerbs
-  （1行1件、# 始まりと空行は無視）
+  （1行1件、# 始まりと空行は無視）。spinnerTipsOverride.label もここで選び直す
 - ~/.claude/spinner-trivia/tips/*.txt → ~/.claude/spinner-tips.json
   （1行1件で「id 本文」。settings.json の spinnerTipsOverride.tipsFile が読む）
 
@@ -29,6 +29,9 @@ VERB_PICK = 100
 # Claude Code が tipsFile から読むのは200件まで
 TIP_PICK = 200
 TIP_COOLDOWN_SESSIONS = 20
+# Tips の頭に付くラベル。スピナーの文言とは無関係な話だとわかるように、話題を変える言葉にする。
+# ラベルは設定に1つしか持てないので、セッションごとに選び直す
+TIP_LABELS = ["ところで", "余談", "ちなみに", "それはそうと", "話は変わって", "ついでに"]
 
 
 def load_lines(kind):
@@ -74,7 +77,7 @@ def pick(keys, seen, n):
     return unseen + fill, set(fill)
 
 
-def update_verbs(seen):
+def update_settings(seen):
     verbs = list(dict.fromkeys(load_lines("verbs")))
     if not verbs:
         return seen
@@ -85,6 +88,9 @@ def update_verbs(seen):
     picked, seen = pick(verbs, seen, VERB_PICK)
     random.shuffle(picked)
     settings["spinnerVerbs"] = {"mode": "replace", "verbs": picked}
+    override = settings.get("spinnerTipsOverride")
+    if isinstance(override, dict):
+        override["label"] = random.choice(TIP_LABELS)
     write_json(SETTINGS, settings, SETTINGS.stat().st_mode & 0o777)
     return seen
 
@@ -108,7 +114,7 @@ def update_tips(seen):
 
 if __name__ == "__main__":
     state = load_state()
-    for key, step in (("verbs", update_verbs), ("tips", update_tips)):
+    for key, step in (("verbs", update_settings), ("tips", update_tips)):
         try:
             state[key] = sorted(step(state.get(key, [])))
         except Exception as e:  # 起動を邪魔しない
