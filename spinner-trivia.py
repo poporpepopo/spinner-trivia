@@ -46,12 +46,17 @@ def load_lines(kind):
 
 def write_json(path, data, mode=None):
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.stem}.", suffix=".json")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-        f.write("\n")
-    if mode is not None:
-        os.chmod(tmp, mode)
-    os.replace(tmp, path)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        if mode is not None:
+            os.chmod(tmp, mode)
+        os.replace(tmp, path)
+    finally:
+        # A failed write must not leave .settings.*.json litter next to settings.json.
+        if os.path.exists(tmp):
+            os.unlink(tmp)
 
 
 def load_state():
